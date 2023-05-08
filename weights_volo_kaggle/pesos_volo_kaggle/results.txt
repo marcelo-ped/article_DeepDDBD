@@ -1,0 +1,3 @@
+test accuracy: 87.82%
+val accc:90,09%
+
