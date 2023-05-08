@@ -1,0 +1,2 @@
+val acc 83,05%
+test acc 44,99%
