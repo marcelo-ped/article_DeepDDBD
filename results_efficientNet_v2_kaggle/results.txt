@@ -1,0 +1,2 @@
+test accuracy: 86.23%
+val acc: 87,83%
