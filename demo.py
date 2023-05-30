@@ -37,40 +37,66 @@ def get_im_cv2(path):
     resized = cv2.resize(src=img, dsize=(128, 128), interpolation=cv2.INTER_LINEAR)
     return resized
 
+path_train_csv = ""
+if args.dataset == "DV":
+    path_train_csv = "train_DV.csv"
+elif args.dataset == "Kaggle":
+    path_train_csv = "train_Kaggle.csv"
+else:
+    path_train_csv = "train_AUC.csv"
+
 def load_train(path):
     '''Give path of the dataset .csv file of training data below'''
     '''Give path of the dataset .csv file of training data below'''
     #df = pd.read_csv(r'/home/marcelo/Downloads/v1_cam1_no_split/Train_data_list.csv')
-    df = pd.read_csv(os.path.join(path, 'train.csv'))
+    df = pd.read_csv(os.path.join(path, path_train_csv))
     x = df.iloc[:,3]
     y = df.iloc[:,2]
     X_train = []
     Y_train = []
     print('Read train images')
     for i in range (0,len(x)):
-        fl=str(x[i]).replace('img', os.getcwd() + '/imgs/train/'+ str(y[i] + '/img'))
+        if  path_train_csv == "train_Kaggle.csv":
+            fl=str(x[i]).replace('img', os.getcwd() + '/Kaggle_Dataset/train/'+ str(y[i] + '/img'))
+        else:
+            fl=str(x[i]).replace('img', os.getcwd() + '/imgs/train/'+ str(y[i] + '/img'))
         #fl = str(x[i])
         img = get_im_cv2(fl)
         X_train.append(img)
         Y_train.append(str(y[i]).replace('c', ''))
     return X_train, Y_train
 
+path_valid_csv = ""
+if args.dataset == "DV":
+    path_valid_csv = "valid_DV.csv"
+elif args.dataset == "Kaggle":
+    path_valid_csv = "valid_Kaggle.csv"
+else:
+    path_valid_csv = "valid_AUC.csv"
+
 def load_valid_1(path):
     '''Give path of .csv file of test data below'''
     #df = pd.read_csv(r'/home/marcelo/Downloads/v1_cam1_no_split/Test_data_list.csv')
-    df = pd.read_csv(os.path.join(path, 'valid.csv'))
+    df = pd.read_csv(os.path.join(path, path_valid_csv))
     x = df.iloc[:,3]
     y = df.iloc[:,2]
     X_valid = []
     Y_valid = []
     print('Read test images')
     for i in range (0,len(x)):
-        fl=str(x[i]).replace('img', os.getcwd() + '/imgs/train/'+ str(y[i] + '/img')) 
+        if  path_valid_csv == "valid_Kaggle.csv":
+            fl=str(x[i]).replace('img', os.getcwd() + '/Kaggle_Dataset/train/'+ str(y[i] + '/img'))
+        else:
+            fl=str(x[i]).replace('img', os.getcwd() + '/imgs/train/'+ str(y[i] + '/img')) 
         #fl = str(x[i])
         img = get_im_cv2(fl)
         X_valid.append(img)
         Y_valid.append(str(y[i]).replace('c', ''))
     return X_valid, Y_valid
+
+#parser = argparse.ArgumentParser(description='VOLDOR-SLAM demo script')
+#parser.add_argument('--dataset', type=str, required=True, help='One from DV/Kaggle/AUC.')
+#parser.add_argument('--neural_network', type=str, required=True, help='One from VOLO/efficientNet/Resnet152.')
 
 path_test_csv = ""
 if args.dataset == "DV":
@@ -252,7 +278,7 @@ def train_model_volo(path):
         
     weights_path=os.path.join(os.getcwd(), 'Checkpoint', 'weights.h5')       
     callbacks = [ModelCheckpoint(weights_path, monitor='val_accuracy', save_weights_only=True, verbose=1, save_best_only = True)]
-
+    model.summary()
     #with tf.device('/GPU:0'):
     hist=model.fit_generator(datagen.flow(X_train, Y_train, batch_size=batch_size),
                     steps_per_epoch=len(X_train) / batch_size, epochs=nb_epoch,
@@ -391,8 +417,8 @@ def test_model_efficientNet(path_weight, path_to_test_dataset):
 
 
 def train_model_efficientNet(path):
-	X_train, Y_train = read_and_normalize_train_data("/home/marcelo/Documentos/Distracted-Driver-Detection/imgs")
-	X_valid, Y_valid = read_and_normalize_valid_data("/home/marcelo/Documentos/Distracted-Driver-Detection/imgs")
+	X_train, Y_train = read_and_normalize_train_data(path)
+	X_valid, Y_valid = read_and_normalize_valid_data(path)
 	# Normalize image vectors
 	#X_train = X_train/255.
 	#X_valid = X_valid/255.
@@ -422,11 +448,11 @@ def train_model_efficientNet(path):
 	num_classes = 10
 	#If imagenet weights are being loaded, 
 	#input must have a static square shape (one of (128, 128), (160, 160), (192, 192), or (224, 224))
-	base_model = applications.resnet.ResNet152(weights= None, include_top=False, input_shape= (img_height,img_width,3))
+	base_model = EfficientNetV2M(input_shape= (128, 128, 3), num_classes= 10) #applications.resnet.ResNet152(weights= None, include_top=False, input_shape= (img_height,img_width,3))
 
 	x = base_model.output
-	x = GlobalAveragePooling2D()(x)
-	x = Dropout(0.7)(x)
+	#x = GlobalAveragePooling2D()(x)
+	#x = Dropout(0.7)(x)
 	predictions = Dense(num_classes, activation= 'softmax')(x)
 	model = Model(inputs = base_model.input, outputs = predictions)
 	batch_size = 64
@@ -554,6 +580,11 @@ def test_model_resnet(path_weight, path_to_test_dataset):
     print('Restored model, accuracy: {:5.2f}%'.format(100 * acc))
     print('Restored model, loss: {:5.2f}%'.format(loss))
 
+#parser = argparse.ArgumentParser(description='VOLDOR-SLAM demo script')
+#parser.add_argument('--dataset', type=str, required=True, help='One from DV/Kaggle/AUC.')
+#parser.add_argument('--neural_network', type=str, required=True, help='One from VOLO/efficientNet/Resnet152.')
+#args = parser.parse_args()
+
 #train_model_volo("/home/marcelo/Documentos/Distracted-Driver-Detection/imgs")
 path_weights = ""
 if args.neural_network == "VOLO"  and args.dataset == "DV":
@@ -576,8 +607,16 @@ elif args.neural_network == "resnet152"  and args.dataset == "AUC":
     path_weights = "weights_resnet152_v2_AUC/weights.h5"
 
 if args.neural_network == "VOLO":
+    train_model_volo(os.getcwd())
+elif args.neural_network == "efficientNet":
+    train_model_efficientNet(os.getcwd())
+elif args.neural_network == "resnet152":
+    train_model_resnet(os.getcwd())
+
+if args.neural_network == "VOLO":
     test_model_volo(path_weights, os.getcwd())
 elif args.neural_network == "efficientNet":
     test_model_efficientNet(path_weights, os.getcwd())
 elif args.neural_network == "resnet152":
     test_model_resnet(path_weights, os.getcwd())
+
