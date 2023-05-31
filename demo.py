@@ -29,6 +29,8 @@ import argparse
 parser = argparse.ArgumentParser(description='VOLDOR-SLAM demo script')
 parser.add_argument('--dataset', type=str, required=True, help='One from DV/Kaggle/AUC.')
 parser.add_argument('--neural_network', type=str, required=True, help='One from VOLO/efficientNet/resnet152.')
+parser.add_argument('--train', action='store_true')
+
 args = parser.parse_args()
 
 
@@ -82,7 +84,7 @@ def load_valid_1(path):
     y = df.iloc[:,2]
     X_valid = []
     Y_valid = []
-    print('Read test images')
+    print('Read valid images')
     for i in range (0,len(x)):
         if  path_valid_csv == "valid_Kaggle.csv":
             fl=str(x[i]).replace('img', os.getcwd() + '/Kaggle_Dataset/train/'+ str(y[i] + '/img'))
@@ -241,7 +243,7 @@ def train_model_volo(path):
     print ("X_train shape: " + str(X_train.shape))
     print ("Y_train shape: " + str(Y_train.shape))
     print ("X_valid shape: " + str(X_valid.shape))
-    print ("Y_test shape: " + str(Y_valid.shape))
+    print ("Y_valid shape: " + str(Y_valid.shape))
     #Data augmentation
 
     datagen = ImageDataGenerator(
@@ -316,13 +318,11 @@ def test_model_volo(path_weight, path_to_test_dataset):
     labels = ['c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9']
     x = classification_report(Y_test.argmax(axis=1), predictions_valid.argmax(axis=1), target_names = labels)
     y = f1_score(Y_test.argmax(axis=1), predictions_valid.argmax(axis=1), average= 'macro')
-    print("None {}".format(x))
-    print("EI ", y)
     ppath=os.path.join(os.path.join(os.getcwd(),'confusion_mat_test.npy'))
     np.save(ppath, cm1)
     loss, acc = model.evaluate(X_test, Y_test, verbose=2)
     print('Restored model, accuracy: {:5.2f}%'.format(100 * acc))
-    print('Restored model, loss: {:5.2f}%'.format(loss))
+    print('Restored model, loss: {:5.2f}'.format(loss))
 
 def train_model_efficientNet(path):
 
@@ -333,7 +333,7 @@ def train_model_efficientNet(path):
     print ("X_train shape: " + str(X_train.shape))
     print ("Y_train shape: " + str(Y_train.shape))
     print ("X_valid shape: " + str(X_valid.shape))
-    print ("Y_test shape: " + str(Y_valid.shape))
+    print ("Y_valid shape: " + str(Y_valid.shape))
     #Data augmentation
 
     datagen = ImageDataGenerator(
@@ -407,13 +407,11 @@ def test_model_efficientNet(path_weight, path_to_test_dataset):
     labels = ['c0', 'c1', 'c2', 'c3', 'c4', 'c5', 'c6', 'c7', 'c8', 'c9']
     x = classification_report(Y_test.argmax(axis=1), predictions_valid.argmax(axis=1), target_names = labels)
     y = f1_score(Y_test.argmax(axis=1), predictions_valid.argmax(axis=1), average= 'macro')
-    print("None {}".format(x))
-    print("EI ", y)
     ppath=os.path.join(os.path.join(os.getcwd(),'confusion_mat_test.npy'))
     np.save(ppath, cm1)
     loss, acc = model.evaluate(X_test, Y_test, verbose=2)
     print('Restored model, accuracy: {:5.2f}%'.format(100 * acc))
-    print('Restored model, loss: {:5.2f}%'.format(loss))
+    print('Restored model, loss: {:5.2f}'.format(loss))
 
 
 def train_model_efficientNet(path):
@@ -432,7 +430,7 @@ def train_model_efficientNet(path):
 	print ("X_train shape: " + str(X_train.shape))
 	print ("Y_train shape: " + str(Y_train.shape))
 	print ("X_valid shape: " + str(X_valid.shape))
-	print ("Y_test shape: " + str(Y_valid.shape))
+	print ("Y_valid shape: " + str(Y_valid.shape))
 	#Data augmentation
 		
 	datagen = ImageDataGenerator(
@@ -498,7 +496,7 @@ def train_model_resnet(path):
 	print ("X_train shape: " + str(X_train.shape))
 	print ("Y_train shape: " + str(Y_train.shape))
 	print ("X_valid shape: " + str(X_valid.shape))
-	print ("Y_test shape: " + str(Y_valid.shape))
+	print ("Y_valid shape: " + str(Y_valid.shape))
 	#Data augmentation
 		
 	datagen = ImageDataGenerator(
@@ -606,11 +604,11 @@ elif args.neural_network == "resnet152"  and args.dataset == "Kaggle":
 elif args.neural_network == "resnet152"  and args.dataset == "AUC":
     path_weights = "weights_resnet152_v2_AUC/weights.h5"
 
-if args.neural_network == "VOLO":
+if args.neural_network == "VOLO" and args.train:
     train_model_volo(os.getcwd())
-elif args.neural_network == "efficientNet":
+elif args.neural_network == "efficientNet" and args.train:
     train_model_efficientNet(os.getcwd())
-elif args.neural_network == "resnet152":
+elif args.neural_network == "resnet152" and args.train:
     train_model_resnet(os.getcwd())
 
 if args.neural_network == "VOLO":
