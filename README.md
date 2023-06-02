@@ -1,5 +1,5 @@
-## **How To Clone This Repository**
-Install git lfs:
+## **How To Clone And Install This Repository**
+* Install git lfs:
 ```bash
 sudo apt install curl
 curl -s https://packagecloud.io/install/repositories/github/git-lfs/script.python.sh | bash
