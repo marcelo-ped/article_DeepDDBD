@@ -1,6 +1,0 @@
-keras
-tensorflow
-h5py
-scikit-learn
-numpy
-gdown
